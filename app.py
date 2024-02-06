@@ -87,29 +87,37 @@ def display_withdrawal_requests():
 
     # Loop through the filtered list for display
     for request in withdrawal_requests:
-        st.write("Withdrawal Request:")
-        st.write(f"Requester: {request[0]}")
-        st.write(f"Amount: {request[1]} wei")
-        st.write(f"Participant UNID Number: {request[2]}")
-        st.write(f"Description: {request[3]}")
-        st.write(f"Approved: {request[4]}")
+        # Check if the withdrawal request is not approved
+        if not request[4]:
+            st.write("Withdrawal Request:")
+            st.write(f"Requester: {request[0]}")
+            st.write(f"Amount: {request[1]} wei")
+            st.write(f"Participant UNID Number: {request[2]}")
+            st.write(f"Description: {request[3]}")
+            st.write(f"Approved: {request[4]}")
 
-        unique_counter = next(counter_generator)
-        approval_button_key = f"approve_button_{request[0]}_{request[2]}_{unique_counter}"
-        approval_button = st.button(f"Approve Withdrawal for {request[0]}", key=approval_button_key)
+            unique_counter = next(counter_generator)
+            approval_button_key = f"approve_button_{request[0]}_{request[2]}_{unique_counter}"
 
-        if approval_button:
-            try:
-                # Disable the button after click
-                with st.spinner("Approving withdrawal..."):
-                    tx_hash = contract.functions.approveWithdrawal(request[0]).transact({'from': contract.functions.ndia().call()})
-                st.success(f"Withdrawal request approved! Transaction Hash: {tx_hash.hex()}")
-                
-                # Trigger a rerun to update the UI
-                st.experimental_rerun()
+            # Display the approval button only if the request is not already approved
+            if not request[4]:
+                approval_button = st.button(f"Approve Withdrawal for {request[0]}", key=approval_button_key)
 
-            except Exception as e:
-                st.error(f"Failed to approve withdrawal request. Error: {e}")
+                if approval_button:
+                    try:
+                        # Disable the button after click
+                        with st.spinner("Approving withdrawal..."):
+                            tx_hash = contract.functions.approveWithdrawal(request[0]).transact({'from': contract.functions.ndia().call()})
+                        st.success(f"Withdrawal request approved! Transaction Hash: {tx_hash.hex()}")
+                        
+                        # Trigger a rerun to update the UI
+                        st.experimental_rerun()
+
+                    except Exception as e:
+                        st.error(f"Failed to approve withdrawal request. Error: {e}")
+            else:
+                st.write("Withdrawal already approved.")
+            st.write("----")
 
 
 # Function to deposit funds by NDIA

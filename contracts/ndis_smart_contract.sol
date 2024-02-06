@@ -67,20 +67,18 @@ contract NDISSmartContract {
     }
 
     // Function to approve a withdrawal request
-    function approveWithdrawal(uint index) external onlyNDIA {
-        require(index < withdrawalRequests.length, "Invalid index");
+    function approveWithdrawal(address payable recipient) external onlyNDIA {
+        for (uint i = 0; i < withdrawalRequests.length; i++) {
+            if (withdrawalRequests[i].requester == recipient && !withdrawalRequests[i].approved) {
+                withdrawalRequests[i].approved = true;
 
-        WithdrawalRequest storage request = withdrawalRequests[index];
-        require(!request.approved, "Withdrawal request already approved.");
+                // Transfer the approved amount to the recipient
+                recipient.transfer(withdrawalRequests[i].amount);
 
-        // Mark the withdrawal request as approved
-        request.approved = true;
-
-        // Perform the withdrawal
-        request.requester.transfer(request.amount);
-
-        emit Withdrawal(request.requester, request.amount, request.participantUnidNumber, request.description);
-        updateParticipantFunds();
+                emit Withdrawal(recipient, withdrawalRequests[i].amount, withdrawalRequests[i].participantUnidNumber, withdrawalRequests[i].description);
+                break; // Stop iterating after the first approval
+            }
+        }
     }
 
     // Function to retrieve all withdrawal requests for a given recipient
