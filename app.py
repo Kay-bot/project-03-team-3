@@ -4,6 +4,9 @@ from web3 import Web3
 from pathlib import Path
 from dotenv import load_dotenv
 import streamlit as st
+from itertools import count
+
+counter_generator = count(start=1)
 
 # Set page configuration
 st.set_page_config(page_title="NDIS Smart Contract Interaction App", page_icon=":rocket:")
@@ -52,12 +55,15 @@ contract = connect_to_contract()
 
 # Streamlit app
 def main():
-    st.title("NDIS Smart Contract Interface")
-    display_contract_details()
-    display_withdrawal_requests()
-    deposit_funds()
-    set_accounts()
-    initiate_withdrawal_request()
+    page = st.sidebar.selectbox("Select Page", ["NDIA", "Participant/ServiceProvider"])
+    
+    if page == "NDIA":
+        display_contract_details()
+        deposit_funds()
+        set_accounts()
+        display_withdrawal_requests()
+    elif page == "Participant/ServiceProvider":
+        initiate_withdrawal_request()
 
 
 # Function to display contract details
@@ -68,36 +74,73 @@ def display_contract_details():
     st.write(f"Service Provider Address: {contract.functions.ndisServiceProvider().call()}")
     st.write(f"Participant Funds: {contract.functions.participantFunds().call()} wei")
 
-# Function to display withdrawal requests
-def display_withdrawal_requests():
+# Function to get withdrawal requests
+def get_withdrawal_requests():
     st.subheader("Withdrawal Requests")
     withdrawal_request_filter = contract.events.WithdrawalRequestInitiated.createFilter(
         fromBlock=0
     )
     all_withdrawal_requests = withdrawal_request_filter.get_all_entries()
-    
-    # Todo: if the request is true, say something...
+    approval_requests = []
 
-    for r in all_withdrawal_requests:
-        request = contract.functions.getWithdrawalRequests(r.args.recipient).call()
-        st.write('The request',request)
+    if not all_withdrawal_requests:
+        st.write("No pending withdrawal requests.")
+    else:
+        for r in all_withdrawal_requests:
+            request = contract.functions.getWithdrawalRequests(r.args.recipient).call()
+
+              # Add to the list if the request is not approved
+            if not request[4]:
+                approval_requests.append(request)
+    return approval_requests
+         
+# Function to display withdrawal requests
+def display_withdrawal_requests():
+    seen_keys = set()
+    approval_requests = get_withdrawal_requests()
+
+    # st.write(approval_requests)
+    # st.write(len(approval_requests))
+
+     # Check if there are no withdrawal requests
+    if not approval_requests:
+        st.write("No pending withdrawal requests.")
+        return
+
+    # Loop through the filtered list for display
+    for request in approval_requests:
+        unique_key = f"{request[0]}_{request[2]}_{request[3]}"
+        
+        # Check if the key has been seen before
+        if unique_key in seen_keys:
+            continue  # Skip if key is a duplicate
+        else:
+            seen_keys.add(unique_key)  # Mark it as seen
+
         st.write("Withdrawal Request:")
         st.write(f"Requester: {request[0]}")
         st.write(f"Amount: {request[1]} wei")
         st.write(f"Participant UNID Number: {request[2]}")
         st.write(f"Description: {request[3]}")
         st.write(f"Approved: {request[4]}")
-        if not request[4]:
-            if st.button(f"Approve Withdrawal for {request[0]}"):
-                try:
+
+        unique_counter = next(counter_generator)
+        approval_button_key = f"approve_button_{request[0]}_{request[2]}_{unique_counter}"
+        approval_button = st.button(f"Approve Withdrawal for {request[0]}", key=approval_button_key)
+
+        if approval_button:
+            try:
+                # Disable the button after click
+                with st.spinner("Approving withdrawal..."):
                     tx_hash = contract.functions.approveWithdrawal(request[0]).transact({'from': contract.functions.ndia().call()})
-                    st.success(f"Withdrawal request approved! Transaction Hash: {tx_hash.hex()}")
-                    # Refresh withdrawal requests after approval
-                    display_withdrawal_requests()
-                except Exception as e:
-                    st.error(f"Failed to approve withdrawal request. Error: {e}")
-    else:
-        st.write("No pending withdrawal requests.")
+                st.success(f"Withdrawal request approved! Transaction Hash: {tx_hash.hex()}")
+                
+                # Trigger a rerun to update the UI
+                st.experimental_rerun()
+
+            except Exception as e:
+                st.error(f"Failed to approve withdrawal request. Error: {e}")
+
 
 # Function to deposit funds by NDIA
 def deposit_funds():
