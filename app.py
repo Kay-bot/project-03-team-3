@@ -55,6 +55,10 @@ def main():
     st.title("NDIS Smart Contract Interface")
     display_contract_details()
     display_withdrawal_requests()
+    deposit_funds()
+    set_accounts()
+    initiate_withdrawal_request()
+
 
 # Function to display contract details
 def display_contract_details():
@@ -67,17 +71,81 @@ def display_contract_details():
 # Function to display withdrawal requests
 def display_withdrawal_requests():
     st.subheader("Withdrawal Requests")
-    withdrawal_requests = contract.functions.getWithdrawalRequests(contract.functions.ndisParticipant().call()).call()
+    withdrawal_request_filter = contract.events.WithdrawalRequestInitiated.createFilter(
+        fromBlock=0
+    )
+    all_withdrawal_requests = withdrawal_request_filter.get_all_entries()
+    
+    # Todo: if the request is true, say something...
 
-    if withdrawal_requests[0] != "0x0000000000000000000000000000000000000000":
+    for r in all_withdrawal_requests:
+        request = contract.functions.getWithdrawalRequests(r.args.recipient).call()
+        st.write('The request',request)
         st.write("Withdrawal Request:")
-        st.write(f"Requester: {withdrawal_requests[0]}")
-        st.write(f"Amount: {withdrawal_requests[1]} wei")
-        st.write(f"Participant UNID Number: {withdrawal_requests[2]}")
-        st.write(f"Description: {withdrawal_requests[3]}")
-        st.write(f"Approved: {withdrawal_requests[4]}")
+        st.write(f"Requester: {request[0]}")
+        st.write(f"Amount: {request[1]} wei")
+        st.write(f"Participant UNID Number: {request[2]}")
+        st.write(f"Description: {request[3]}")
+        st.write(f"Approved: {request[4]}")
+        if not request[4]:
+            if st.button(f"Approve Withdrawal for {request[0]}"):
+                try:
+                    tx_hash = contract.functions.approveWithdrawal(request[0]).transact({'from': contract.functions.ndia().call()})
+                    st.success(f"Withdrawal request approved! Transaction Hash: {tx_hash.hex()}")
+                    # Refresh withdrawal requests after approval
+                    display_withdrawal_requests()
+                except Exception as e:
+                    st.error(f"Failed to approve withdrawal request. Error: {e}")
     else:
         st.write("No pending withdrawal requests.")
+
+# Function to deposit funds by NDIA
+def deposit_funds():
+    st.subheader("Deposit Funds (NDIA Only)")
+    deposit_amount = st.number_input("Enter deposit amount in wei:", min_value=0, step=1)
+
+    if st.button("Deposit Funds"):
+        try:
+            tx_hash = contract.functions.deposit().transact({'from': contract.functions.ndia().call(), 'value': deposit_amount})
+            st.success(f"Deposit successful! Transaction Hash: {tx_hash.hex()}")
+            # Refresh contract details after deposit
+            display_contract_details()
+        except Exception as e:
+            st.error(f"Failed to deposit funds. Error: {e}")
+
+# Function to set participant and service provider accounts by NDIA
+def set_accounts():
+    st.subheader("Set Participant and Service Provider Accounts (NDIA Only)")
+    participant_address = st.text_input("Enter Participant Address:")
+    service_provider_address = st.text_input("Enter Service Provider Address:")
+
+    if st.button("Set Accounts"):
+        try:
+            tx_hash = contract.functions.setAccounts(participant_address, service_provider_address).transact({'from': contract.functions.ndia().call()})
+            st.success(f"Accounts set successfully! Transaction Hash: {tx_hash.hex()}")
+            # Refresh contract details after setting accounts
+            display_contract_details()
+        except Exception as e:
+            st.error(f"Failed to set accounts. Error: {e}")
+
+# Function to initiate withdrawal request by ndisParticipant or ndisServiceProvider
+def initiate_withdrawal_request():
+    st.subheader("Initiate Withdrawal Request (ndisParticipant or ndisServiceProvider)")
+    withdrawal_amount = st.number_input("Enter withdrawal amount in wei:", min_value=0, step=1)
+    participant_unid_number = st.text_input("Enter participant UNID number:")
+    withdrawal_description = st.text_input("Enter withdrawal description:")
+
+    # requester_address = w3.eth.defaultAccount  # Assuming the user is already authenticated
+    requester_address = w3.eth.accounts[2] #Account#3 registered as NDIS Service Provider 
+
+    if st.button("Initiate Withdrawal Request"):
+        try:
+            tx_hash = contract.functions.initiateWithdrawalRequest(withdrawal_amount, participant_unid_number, withdrawal_description).transact({'from': requester_address})
+            st.success(f"Withdrawal request initiated successfully! Transaction Hash: {tx_hash.hex()}")
+            # Refresh withdrawal requests after initiation
+            display_withdrawal_requests()
+        except Exception as e:
+            st.error(f"Failed to initiate withdrawal request. Error: {e}")
 
 # Main Streamlit app
 if __name__ == "__main__":
