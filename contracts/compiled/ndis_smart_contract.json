@@ -2,9 +2,9 @@
 	{
 		"inputs": [
 			{
-				"internalType": "address payable",
-				"name": "recipient",
-				"type": "address"
+				"internalType": "uint256",
+				"name": "index",
+				"type": "uint256"
 			}
 		],
 		"name": "approveWithdrawal",
@@ -146,29 +146,29 @@
 		"name": "getWithdrawalRequests",
 		"outputs": [
 			{
-				"internalType": "address",
-				"name": "requester",
-				"type": "address"
+				"internalType": "address[]",
+				"name": "requesters",
+				"type": "address[]"
 			},
 			{
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
+				"internalType": "uint256[]",
+				"name": "amounts",
+				"type": "uint256[]"
 			},
 			{
-				"internalType": "string",
-				"name": "participantUnidNumber",
-				"type": "string"
+				"internalType": "string[]",
+				"name": "participantUnidNumbers",
+				"type": "string[]"
 			},
 			{
-				"internalType": "string",
-				"name": "description",
-				"type": "string"
+				"internalType": "string[]",
+				"name": "descriptions",
+				"type": "string[]"
 			},
 			{
-				"internalType": "bool",
-				"name": "approved",
-				"type": "bool"
+				"internalType": "bool[]",
+				"name": "approvedStatuses",
+				"type": "bool[]"
 			}
 		],
 		"stateMutability": "view",
@@ -227,17 +227,30 @@
 		"type": "function"
 	},
 	{
+		"inputs": [],
+		"name": "withdrawalRequestCount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
 		"inputs": [
 			{
-				"internalType": "address",
+				"internalType": "uint256",
 				"name": "",
-				"type": "address"
+				"type": "uint256"
 			}
 		],
 		"name": "withdrawalRequests",
 		"outputs": [
 			{
-				"internalType": "address",
+				"internalType": "address payable",
 				"name": "requester",
 				"type": "address"
 			},

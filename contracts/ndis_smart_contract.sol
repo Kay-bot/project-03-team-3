@@ -13,12 +13,18 @@ contract NDISSmartContract {
     address payable public ndisServiceProvider;
     uint public participantFunds;
 
-    // Mapping to track withdrawal requests
-    mapping(address => WithdrawalRequest) public withdrawalRequests;
+    // // Mapping to track withdrawal requests
+    // mapping(address => WithdrawalRequest) public withdrawalRequests;
+
+    // Array to store withdrawal requests
+    WithdrawalRequest[] public withdrawalRequests;
+
+    // Add a counter for withdrawal requests
+    uint public withdrawalRequestCount;
 
     // Struct to represent a withdrawal request
     struct WithdrawalRequest {
-        address requester;
+        address payable requester;
         uint amount;
         string participantUnidNumber;
         string description;
@@ -51,8 +57,8 @@ contract NDISSmartContract {
         require(recipient == ndisParticipant || recipient == ndisServiceProvider, "Permission denied: Only ndisParticipant or ndisServiceProvider can initiate withdrawal requests.");
         require(participantFunds >= amount, "Insufficient funds!");
 
-        // Create a withdrawal request
-        withdrawalRequests[recipient] = WithdrawalRequest({
+        // Create a withdrawal request and add it to the array
+        WithdrawalRequest memory newRequest = WithdrawalRequest({
             requester: recipient,
             amount: amount,
             participantUnidNumber: participantUnidNumber,
@@ -60,42 +66,74 @@ contract NDISSmartContract {
             approved: false
         });
 
+        withdrawalRequests.push(newRequest);
+
         emit WithdrawalRequestInitiated(recipient, amount, participantUnidNumber, description);
     }
 
     // Function to approve a withdrawal request
-    function approveWithdrawal(address payable recipient) external onlyNDIA {
-        WithdrawalRequest storage request = withdrawalRequests[recipient];
-        require(request.requester != address(0), "No pending withdrawal request for this address.");
+    function approveWithdrawal(uint index) external onlyNDIA {
+        require(index < withdrawalRequests.length, "Invalid index");
+
+        WithdrawalRequest storage request = withdrawalRequests[index];
         require(!request.approved, "Withdrawal request already approved.");
 
         // Mark the withdrawal request as approved
         request.approved = true;
 
         // Perform the withdrawal
-        recipient.transfer(request.amount);
+        request.requester.transfer(request.amount);
 
-        emit Withdrawal(recipient, request.amount, request.participantUnidNumber, request.description);
+        emit Withdrawal(request.requester, request.amount, request.participantUnidNumber, request.description);
         updateParticipantFunds();
     }
 
-    // Function to retrieve withdrawal requests
+    // Function to retrieve all withdrawal requests for a given recipient
     function getWithdrawalRequests(address recipient) external view returns (
-        address requester,
-        uint amount,
-        string memory participantUnidNumber,
-        string memory description,
-        bool approved
+        address[] memory requesters,
+        uint[] memory amounts,
+        string[] memory participantUnidNumbers,
+        string[] memory descriptions,
+        bool[] memory approvedStatuses
     ) {
-        WithdrawalRequest memory request = withdrawalRequests[recipient];
-        return (
-            request.requester,
-            request.amount,
-            request.participantUnidNumber,
-            request.description,
-            request.approved
-        );
+        uint requestCount = 0;
+
+        // Iterate over withdrawalRequests mapping to count matching requests
+        for (uint i = 0; i < withdrawalRequests.length; i++) {
+            WithdrawalRequest memory request = withdrawalRequests[i];
+
+            // Check if the request exists and matches the recipient
+            if (request.requester == recipient) {
+                requestCount++;
+            }
+        }
+
+        // Initialize arrays with the appropriate size
+        requesters = new address[](requestCount);
+        amounts = new uint[](requestCount);
+        participantUnidNumbers = new string[](requestCount);
+        descriptions = new string[](requestCount);
+        approvedStatuses = new bool[](requestCount);
+
+        // Iterate over withdrawalRequests mapping to populate the arrays with details
+        uint currentIndex = 0;
+        for (uint i = 0; i < withdrawalRequests.length; i++) {
+            WithdrawalRequest memory request = withdrawalRequests[i];
+
+            // Check if the request exists and matches the recipient
+            if (request.requester == recipient) {
+                requesters[currentIndex] = request.requester;
+                amounts[currentIndex] = request.amount;
+                participantUnidNumbers[currentIndex] = request.participantUnidNumber;
+                descriptions[currentIndex] = request.description;
+                approvedStatuses[currentIndex] = request.approved;
+                currentIndex++;
+            }
+        }
+
+        return (requesters, amounts, participantUnidNumbers, descriptions, approvedStatuses);
     }
+
 
     // Function to set participant and service provider accounts
     function setAccounts(address payable participant, address payable serviceProvider) external onlyNDIA {
