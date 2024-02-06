@@ -46,16 +46,16 @@
 		"inputs": [
 			{
 				"internalType": "address payable",
-				"name": "participant",
+				"name": "account",
 				"type": "address"
 			},
 			{
-				"internalType": "address payable",
-				"name": "serviceProvider",
-				"type": "address"
+				"internalType": "bool",
+				"name": "isParticipantAccount",
+				"type": "bool"
 			}
 		],
-		"name": "setAccounts",
+		"name": "registerAccount",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -189,26 +189,38 @@
 		"type": "function"
 	},
 	{
-		"inputs": [],
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
 		"name": "ndisParticipant",
 		"outputs": [
 			{
-				"internalType": "address payable",
+				"internalType": "bool",
 				"name": "",
-				"type": "address"
+				"type": "bool"
 			}
 		],
 		"stateMutability": "view",
 		"type": "function"
 	},
 	{
-		"inputs": [],
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
 		"name": "ndisServiceProvider",
 		"outputs": [
 			{
-				"internalType": "address payable",
+				"internalType": "bool",
 				"name": "",
-				"type": "address"
+				"type": "bool"
 			}
 		],
 		"stateMutability": "view",

@@ -60,7 +60,7 @@ def main():
     if page == "NDIA":
         display_contract_details()
         deposit_funds()
-        set_accounts()
+        register_account()
         display_withdrawal_requests()
     elif page == "Participant/ServiceProvider":
         initiate_withdrawal_request()
@@ -70,8 +70,6 @@ def main():
 def display_contract_details():
     st.subheader("Contract Details")
     st.write(f"NDIA Address: {contract.functions.ndia().call()}")
-    st.write(f"Participant Address: {contract.functions.ndisParticipant().call()}")
-    st.write(f"Service Provider Address: {contract.functions.ndisServiceProvider().call()}")
     st.write(f"Participant Funds: {contract.functions.participantFunds().call()} wei")
 
 # Function to display withdrawal requests
@@ -134,39 +132,63 @@ def deposit_funds():
         except Exception as e:
             st.error(f"Failed to deposit funds. Error: {e}")
 
-# Function to set participant and service provider accounts by NDIA
-def set_accounts():
-    st.subheader("Set Participant and Service Provider Accounts (NDIA Only)")
-    participant_address = st.text_input("Enter Participant Address:")
-    service_provider_address = st.text_input("Enter Service Provider Address:")
+# Function to register participant and service provider accounts by NDIA
+def register_account():
+    st.subheader("Register Account")
 
-    if st.button("Set Accounts"):
+    # Input form
+    account_address = st.text_input("Enter Account Address:")
+    is_participant_account = True if st.checkbox("Register as a Participant Account") else False
+
+    # Button to execute the function
+    if st.button("Register Account"):
         try:
-            tx_hash = contract.functions.setAccounts(participant_address, service_provider_address).transact({'from': contract.functions.ndia().call()})
-            st.success(f"Accounts set successfully! Transaction Hash: {tx_hash.hex()}")
-            # Refresh contract details after setting accounts
-            display_contract_details()
+            # Convert input values
+            account_address = Web3.toChecksumAddress(account_address)
+
+            # Check if the account is already registered
+            if contract.functions.ndisParticipant(account_address).call() or \
+                    contract.functions.ndisServiceProvider(account_address).call():
+                st.error("Account already registered.")
+            else:
+                # Execute the Solidity function with onlyNDIA modifier
+                contract.functions.registerAccount(account_address, is_participant_account).transact({'from': contract.functions.ndia().call()})
+
+                st.success("Account registered successfully.")
         except Exception as e:
-            st.error(f"Failed to set accounts. Error: {e}")
+            st.error(f"Error: {e}")
 
 # Function to initiate withdrawal request by ndisParticipant or ndisServiceProvider
 def initiate_withdrawal_request():
-    st.subheader("Initiate Withdrawal Request (ndisParticipant or ndisServiceProvider)")
+    st.subheader("Initiate Withdrawal Request (NDIS Participant or NDIS ServiceProvider)")
     withdrawal_amount = st.number_input("Enter withdrawal amount in wei:", min_value=0, step=1)
     participant_unid_number = st.text_input("Enter participant UNID number:")
     withdrawal_description = st.text_input("Enter withdrawal description:")
 
-    # requester_address = w3.eth.defaultAccount  # Assuming the user is already authenticated
-    requester_address = w3.eth.accounts[2] #Account#3 registered as NDIS Service Provider 
-
-    if st.button("Initiate Withdrawal Request"):
+    # Get the Ethereum account address based on user input
+    address = st.text_input("Enter Account Address:")
+    
+    if address:  # Check if address has a non-empty value before attempting conversion
         try:
-            tx_hash = contract.functions.initiateWithdrawalRequest(withdrawal_amount, participant_unid_number, withdrawal_description).transact({'from': requester_address})
-            st.success(f"Withdrawal request initiated successfully! Transaction Hash: {tx_hash.hex()}")
-            # Refresh withdrawal requests after initiation
-            display_withdrawal_requests()
-        except Exception as e:
-            st.error(f"Failed to initiate withdrawal request. Error: {e}")
+
+            requester_address = address
+
+            if st.button("Initiate Withdrawal Request"):
+                try:
+                    tx_hash = contract.functions.initiateWithdrawalRequest(withdrawal_amount, participant_unid_number, withdrawal_description).transact({'from': requester_address})
+                    st.success(f"Withdrawal request initiated successfully! Transaction Hash: {tx_hash.hex()}")
+                    # Refresh withdrawal requests after initiation
+                    display_withdrawal_requests()
+                except Exception as e:
+                    st.error(f"Failed to initiate withdrawal request. Error: {e}")
+    
+        except ValueError:
+            st.error("Invalid input. Please enter a valid integer for the Ethereum account index.")
+
+    else:
+        st.warning("Please enter a valid value for Account Address.")
+
+
 
 # Main Streamlit app
 if __name__ == "__main__":

@@ -9,8 +9,6 @@ pragma solidity ^0.8.0;
 contract NDISSmartContract {
 
     address public ndia; // NDIS Agency's address
-    address payable public ndisParticipant;
-    address payable public ndisServiceProvider;
     uint public participantFunds;
 
 
@@ -26,6 +24,10 @@ contract NDISSmartContract {
         bool approved;
     }
 
+    // Mapping to store participant and service provider addresses
+    mapping(address => bool) public ndisParticipant;
+    mapping(address => bool) public ndisServiceProvider;
+
     // Constructor to set the NDIS Agency's address
     constructor() {
         ndia = msg.sender;
@@ -37,6 +39,11 @@ contract NDISSmartContract {
         _;
     }
 
+    modifier onlyNdisParticipantAndNdisServiceProvider() {
+    require(ndisParticipant[msg.sender] || ndisServiceProvider[msg.sender], "Permission denied: Only ndisParticipant or ndisServiceProvider can execute this.");
+    _;  // Continue with the execution of the function
+}
+
     // Event to log withdrawal details
     event Withdrawal(address indexed recipient, uint amount, string participantUnidNumber, string description);
     event WithdrawalRequestInitiated(address indexed recipient, uint amount, string participantUnidNumber, string description);
@@ -47,9 +54,8 @@ contract NDISSmartContract {
     }
 
     // Function to initiate a withdrawal request
-    function initiateWithdrawalRequest(uint amount, string memory participantUnidNumber, string memory description) external {
+    function initiateWithdrawalRequest(uint amount, string memory participantUnidNumber, string memory description) external onlyNdisParticipantAndNdisServiceProvider {
         address payable recipient = payable(msg.sender);
-        require(recipient == ndisParticipant || recipient == ndisServiceProvider, "Permission denied: Only ndisParticipant or ndisServiceProvider can initiate withdrawal requests.");
         require(participantFunds >= amount, "Insufficient funds!");
 
         // Create a withdrawal request and add it to the array
@@ -87,11 +93,15 @@ contract NDISSmartContract {
     }
 
 
-    // Function to set participant and service provider accounts
-    function setAccounts(address payable participant, address payable serviceProvider) external onlyNDIA {
-        ndisParticipant = participant;
-        ndisServiceProvider = serviceProvider;
-        updateParticipantFunds();
+    // Function to register participant and service provider accounts
+    function registerAccount(address payable account, bool isParticipantAccount) external onlyNDIA {
+        require(!ndisParticipant[account] && !ndisServiceProvider[account], "Account already registered.");
+
+        if (isParticipantAccount) {
+            ndisParticipant[account] = true;
+        } else {
+            ndisServiceProvider[account] = true;
+        }
     }
 
     // Receive function to handle incoming Ether
