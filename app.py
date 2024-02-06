@@ -74,49 +74,19 @@ def display_contract_details():
     st.write(f"Service Provider Address: {contract.functions.ndisServiceProvider().call()}")
     st.write(f"Participant Funds: {contract.functions.participantFunds().call()} wei")
 
-# Function to get withdrawal requests
-def get_withdrawal_requests():
-    st.subheader("Withdrawal Requests")
-    withdrawal_request_filter = contract.events.WithdrawalRequestInitiated.createFilter(
-        fromBlock=0
-    )
-    all_withdrawal_requests = withdrawal_request_filter.get_all_entries()
-    approval_requests = []
-
-    if not all_withdrawal_requests:
-        st.write("No pending withdrawal requests.")
-    else:
-        for r in all_withdrawal_requests:
-            request = contract.functions.getWithdrawalRequests(r.args.recipient).call()
-
-              # Add to the list if the request is not approved
-            if not request[4]:
-                approval_requests.append(request)
-    return approval_requests
-         
 # Function to display withdrawal requests
 def display_withdrawal_requests():
-    seen_keys = set()
-    approval_requests = get_withdrawal_requests()
-
-    # st.write(approval_requests)
-    # st.write(len(approval_requests))
-
-     # Check if there are no withdrawal requests
-    if not approval_requests:
+    
+    # Retrieve all withdrawal requests from blockchain
+    withdrawal_requests = contract.functions.getWithdrawalRequests().call()
+    
+    # Check if there are no withdrawal requests
+    if not withdrawal_requests:
         st.write("No pending withdrawal requests.")
         return
 
     # Loop through the filtered list for display
-    for request in approval_requests:
-        unique_key = f"{request[0]}_{request[2]}_{request[3]}"
-        
-        # Check if the key has been seen before
-        if unique_key in seen_keys:
-            continue  # Skip if key is a duplicate
-        else:
-            seen_keys.add(unique_key)  # Mark it as seen
-
+    for request in withdrawal_requests:
         st.write("Withdrawal Request:")
         st.write(f"Requester: {request[0]}")
         st.write(f"Amount: {request[1]} wei")

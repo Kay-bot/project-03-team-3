@@ -13,14 +13,9 @@ contract NDISSmartContract {
     address payable public ndisServiceProvider;
     uint public participantFunds;
 
-    // // Mapping to track withdrawal requests
-    // mapping(address => WithdrawalRequest) public withdrawalRequests;
 
     // Array to store withdrawal requests
     WithdrawalRequest[] public withdrawalRequests;
-
-    // Add a counter for withdrawal requests
-    uint public withdrawalRequestCount;
 
     // Struct to represent a withdrawal request
     struct WithdrawalRequest {
@@ -89,49 +84,8 @@ contract NDISSmartContract {
     }
 
     // Function to retrieve all withdrawal requests for a given recipient
-    function getWithdrawalRequests(address recipient) external view returns (
-        address[] memory requesters,
-        uint[] memory amounts,
-        string[] memory participantUnidNumbers,
-        string[] memory descriptions,
-        bool[] memory approvedStatuses
-    ) {
-        uint requestCount = 0;
-
-        // Iterate over withdrawalRequests mapping to count matching requests
-        for (uint i = 0; i < withdrawalRequests.length; i++) {
-            WithdrawalRequest memory request = withdrawalRequests[i];
-
-            // Check if the request exists and matches the recipient
-            if (request.requester == recipient) {
-                requestCount++;
-            }
-        }
-
-        // Initialize arrays with the appropriate size
-        requesters = new address[](requestCount);
-        amounts = new uint[](requestCount);
-        participantUnidNumbers = new string[](requestCount);
-        descriptions = new string[](requestCount);
-        approvedStatuses = new bool[](requestCount);
-
-        // Iterate over withdrawalRequests mapping to populate the arrays with details
-        uint currentIndex = 0;
-        for (uint i = 0; i < withdrawalRequests.length; i++) {
-            WithdrawalRequest memory request = withdrawalRequests[i];
-
-            // Check if the request exists and matches the recipient
-            if (request.requester == recipient) {
-                requesters[currentIndex] = request.requester;
-                amounts[currentIndex] = request.amount;
-                participantUnidNumbers[currentIndex] = request.participantUnidNumber;
-                descriptions[currentIndex] = request.description;
-                approvedStatuses[currentIndex] = request.approved;
-                currentIndex++;
-            }
-        }
-
-        return (requesters, amounts, participantUnidNumbers, descriptions, approvedStatuses);
+    function getWithdrawalRequests() external view returns (WithdrawalRequest[] memory) {
+        return withdrawalRequests;
     }
 
 

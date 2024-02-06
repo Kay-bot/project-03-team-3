@@ -136,39 +136,40 @@
 		"type": "receive"
 	},
 	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "recipient",
-				"type": "address"
-			}
-		],
+		"inputs": [],
 		"name": "getWithdrawalRequests",
 		"outputs": [
 			{
-				"internalType": "address[]",
-				"name": "requesters",
-				"type": "address[]"
-			},
-			{
-				"internalType": "uint256[]",
-				"name": "amounts",
-				"type": "uint256[]"
-			},
-			{
-				"internalType": "string[]",
-				"name": "participantUnidNumbers",
-				"type": "string[]"
-			},
-			{
-				"internalType": "string[]",
-				"name": "descriptions",
-				"type": "string[]"
-			},
-			{
-				"internalType": "bool[]",
-				"name": "approvedStatuses",
-				"type": "bool[]"
+				"components": [
+					{
+						"internalType": "address payable",
+						"name": "requester",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					},
+					{
+						"internalType": "string",
+						"name": "participantUnidNumber",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "description",
+						"type": "string"
+					},
+					{
+						"internalType": "bool",
+						"name": "approved",
+						"type": "bool"
+					}
+				],
+				"internalType": "struct NDISSmartContract.WithdrawalRequest[]",
+				"name": "",
+				"type": "tuple[]"
 			}
 		],
 		"stateMutability": "view",
