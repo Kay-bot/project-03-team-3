@@ -8,32 +8,23 @@ pragma solidity ^0.8.0;
 
 contract NDISSmartContract {
 
+    enum RequestStatus { Pending, ServiceOffered, Approved }
+
+    // Struct to represent a request
+    struct Request {
+        address payable requester;
+        uint amount; 
+        string participantUnidNumber; 
+        string serviceDescription; 
+        RequestStatus status;
+    }
+
+    // Mapping to store requests
+    mapping(bytes32 => Request) public requests;
+    bytes32[] public requestIds;
+
     address public ndia; // NDIS Agency's address
     uint public participantFunds;
-
-
-    // Array to store withdrawal requests
-    WithdrawalRequest[] public withdrawalRequests;
-
-    // Struct to represent a withdrawal request
-    struct WithdrawalRequest {
-        address payable requester;
-        uint amount;
-        string participantUnidNumber;
-        string description;
-        bool approved;
-    }
-
-    // Array to store service requests
-    ServiceRequest[] public ServiceRequests;
-
-    // Struct to represent service request
-    struct ServiceRequest {
-        address payable requester;
-        string serviceDescription;
-        bool offeredService;
-    }
-
     // Mapping to store participant and service provider addresses
     mapping(address => bool) public ndisParticipant;
     mapping(address => bool) public ndisServiceProvider;
@@ -65,95 +56,23 @@ contract NDISSmartContract {
         _;
     }
 
-    // Event to log withdrawal details
-    event Withdrawal(address indexed recipient, uint amount, string participantUnidNumber, string description);
-    event WithdrawalRequestInitiated(address indexed recipient, uint amount, string participantUnidNumber, string description);
-
     // Event to log service booking details
-    event ServiceBooked(address indexed participant, string serviceDescription);
+    event ServiceBooked(address indexed participant, bytes32 requestId, string serviceDescription, uint amount, RequestStatus status);
 
     // Event to log service approval details
-    event ServiceOffered(address indexed serviceProvider, address indexed participant, string serviceDescription);
+    event ServiceOffered(address indexed serviceProvider, address indexed participant, bytes32 requestId, string serviceDescription, RequestStatus status);
+
+    // Event to log withdrawal details
+    event Withdrawal(address indexed recipient, bytes32 requestId, uint amount, string participantUnidNumber, string serviceDescription, RequestStatus status);
+    event WithdrawalRequestInitiated(address indexed recipient, bytes32 requestId, uint amount, string participantUnidNumber, string serviceDescription, RequestStatus status);
+
+    /**
+    * NDIS Functions 
+    */
 
     // Function to handle deposits by NDIS Agency
     function deposit() external payable onlyNDIA {
         updateParticipantFunds();
-    }
-
-    // Function to initiate a withdrawal request
-    function initiateWithdrawalRequest(uint amount, string memory participantUnidNumber, string memory description) external onlyNdisParticipantAndNdisServiceProvider {
-        address payable recipient = payable(msg.sender);
-        require(participantFunds >= amount, "Insufficient funds!");
-
-        // Create a withdrawal request and add it to the array
-        WithdrawalRequest memory newRequest = WithdrawalRequest({
-            requester: recipient,
-            amount: amount,
-            participantUnidNumber: participantUnidNumber,
-            description: description,
-            approved: false
-        });
-
-        withdrawalRequests.push(newRequest);
-
-        emit WithdrawalRequestInitiated(recipient, amount, participantUnidNumber, description);
-    }
-
-    // Function to approve a withdrawal request
-    function approveWithdrawal(address payable recipient) external onlyNDIA {
-        for (uint i = 0; i < withdrawalRequests.length; i++) {
-            if (withdrawalRequests[i].requester == recipient && !withdrawalRequests[i].approved) {
-                withdrawalRequests[i].approved = true;
-
-                // Transfer the approved amount to the recipient
-                recipient.transfer(withdrawalRequests[i].amount);
-
-                emit Withdrawal(recipient, withdrawalRequests[i].amount, withdrawalRequests[i].participantUnidNumber, withdrawalRequests[i].description);
-                break; // Stop iterating after the first approval
-            }
-        }
-    }
-
-    // Function to retrieve all withdrawal requests for a given recipient
-    function getWithdrawalRequests() external view returns (WithdrawalRequest[] memory) {
-        return withdrawalRequests;
-    }
-
-    // Function to retrieve all booking requests for a given recipient
-    function getBookingRequests() external view returns (ServiceRequest[] memory) {
-        return ServiceRequests;
-    }
-
-     // Function for participants to book services
-    function bookService(string memory serviceDescription) external onlyNdisParticipant {
-        address payable requester = payable(msg.sender);
-
-        // Create a withdrawal request and add it to the array
-        ServiceRequest memory newRequest = ServiceRequest({
-            requester:requester,
-            serviceDescription: serviceDescription,
-            offeredService: false
-        });
-
-        ServiceRequests.push(newRequest);
-
-        // Emit event to log service booking details
-        emit ServiceBooked(msg.sender, serviceDescription);
-    }
-
-    // Function for service providers to approve service bookings
-    function offerService(address payable participant, string memory serviceDescription) external onlyServiceProvider {
-        // Find the corresponding service request
-        for (uint i = 0; i < ServiceRequests.length; i++) {
-            if (ServiceRequests[i].requester == participant && keccak256(abi.encodePacked(ServiceRequests[i].serviceDescription)) == keccak256(abi.encodePacked(serviceDescription)) && !ServiceRequests[i].offeredService) {
-                // Mark the service as offered
-                ServiceRequests[i].offeredService = true;
-
-                // Emit event to log service approval details
-                emit ServiceOffered(msg.sender, participant, serviceDescription);
-                break; // Stop iterating after the first approval
-            }
-        }
     }
 
     // Function to register participant and service provider accounts
@@ -165,6 +84,91 @@ contract NDISSmartContract {
         } else {
             ndisServiceProvider[account] = true;
         }
+    }
+
+    // Function to approve a withdrawal request
+    function approveWithdrawal(bytes32 requestId) external onlyNDIA {
+        // Check if the request exists
+        require(requests[requestId].status != RequestStatus.Approved, "Request already approved");
+        require(requests[requestId].status == RequestStatus.Pending, "Request pending");
+
+        // Mark the service as approved
+        requests[requestId].status = RequestStatus.Approved;
+
+        // Transfer the approved amount to the recipient
+        requests[requestId].requester.transfer(requests[requestId].amount);
+
+        emit Withdrawal(requests[requestId].requester, requestId, requests[requestId].amount, requests[requestId].participantUnidNumber, requests[requestId].serviceDescription, requests[requestId].status);
+    }
+
+    /**
+    * Participant Functions 
+    */
+
+    // Function for participants to book services
+    function bookService(string memory serviceDescription, uint amount, string memory participantUnidNumber) external onlyNdisParticipant {
+        address payable requester = payable(msg.sender);
+        bytes32 requestId = keccak256(abi.encodePacked(requester, serviceDescription, amount, participantUnidNumber, block.timestamp));
+
+        // Create a service request and add it to the mapping
+        requests[requestId] = Request({
+            requester: requester,
+            amount: amount,
+            participantUnidNumber: participantUnidNumber,
+            serviceDescription: serviceDescription,
+            status: RequestStatus.Pending
+        });
+
+        requestIds.push(requestId);
+
+        // Emit event to log service booking details
+        emit ServiceBooked(msg.sender, requestId, serviceDescription, amount, RequestStatus.Pending);
+    }
+
+    /**
+    * Service Provider Functions 
+    */
+
+    // Function for service providers to offer service bookings
+    function offerService(address payable participant, bytes32 requestId, string memory serviceDescription) external onlyServiceProvider {
+        require(requests[requestId].status == RequestStatus.Pending, "Request not pending");
+
+        // Mark the service as offered
+        requests[requestId].status = RequestStatus.ServiceOffered;
+
+        // Emit event to log service approval details
+        emit ServiceOffered(msg.sender, participant, requestId, serviceDescription, RequestStatus.ServiceOffered);
+    }
+
+    // Function to initiate a withdrawal request
+    function initiateWithdrawalRequest(bytes32 requestId, uint amount, string memory participantUnidNumber, string memory serviceDescription) external onlyNdisParticipantAndNdisServiceProvider {
+        address payable recipient = payable(msg.sender);
+        require(requests[requestId].status == RequestStatus.ServiceOffered, "Service Rendered");
+        require(participantFunds >= amount, "Insufficient funds!");
+
+        // Create a withdrawal request and add it to the mapping
+        requests[requestId] = Request({
+            requester: recipient,
+            amount: amount,
+            participantUnidNumber: participantUnidNumber,
+            serviceDescription: serviceDescription,
+            status: RequestStatus.Pending
+        });
+
+        emit WithdrawalRequestInitiated(recipient, requestId, amount, participantUnidNumber, serviceDescription, RequestStatus.Pending);
+    }
+
+    /**
+    * Retrieve info and default functions 
+    */
+
+    // Function to retrieve all booking requests for a given recipient
+    function getBookingRequests() external view returns (Request[] memory) {
+        Request[] memory result = new Request[](requestIds.length);
+        for (uint i = 0; i < requestIds.length; i++) {
+            result[i] = requests[requestIds[i]];
+        }
+        return result;
     }
 
     // Receive function to handle incoming Ether

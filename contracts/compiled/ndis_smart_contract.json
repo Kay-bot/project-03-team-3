@@ -1,115 +1,5 @@
 [
 	{
-		"inputs": [
-			{
-				"internalType": "address payable",
-				"name": "recipient",
-				"type": "address"
-			}
-		],
-		"name": "approveWithdrawal",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "string",
-				"name": "serviceDescription",
-				"type": "string"
-			}
-		],
-		"name": "bookService",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "string",
-				"name": "serviceDescription",
-				"type": "string"
-			},
-			{
-				"internalType": "address payable",
-				"name": "serviceProvider",
-				"type": "address"
-			}
-		],
-		"name": "confirmServiceRendered",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "deposit",
-		"outputs": [],
-		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			},
-			{
-				"internalType": "string",
-				"name": "participantUnidNumber",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "description",
-				"type": "string"
-			}
-		],
-		"name": "initiateWithdrawalRequest",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address payable",
-				"name": "participant",
-				"type": "address"
-			},
-			{
-				"internalType": "string",
-				"name": "serviceDescription",
-				"type": "string"
-			}
-		],
-		"name": "offerService",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address payable",
-				"name": "account",
-				"type": "address"
-			},
-			{
-				"internalType": "bool",
-				"name": "isParticipantAccount",
-				"type": "bool"
-			}
-		],
-		"name": "registerAccount",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
 		"inputs": [],
 		"stateMutability": "nonpayable",
 		"type": "constructor"
@@ -125,9 +15,27 @@
 			},
 			{
 				"indexed": false,
+				"internalType": "bytes32",
+				"name": "requestId",
+				"type": "bytes32"
+			},
+			{
+				"indexed": false,
 				"internalType": "string",
 				"name": "serviceDescription",
 				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "enum NDISSmartContract.RequestStatus",
+				"name": "status",
+				"type": "uint8"
 			}
 		],
 		"name": "ServiceBooked",
@@ -139,37 +47,6 @@
 			{
 				"indexed": true,
 				"internalType": "address",
-				"name": "participant",
-				"type": "address"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "serviceProvider",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "string",
-				"name": "serviceDescription",
-				"type": "string"
-			},
-			{
-				"indexed": false,
-				"internalType": "address",
-				"name": "ndisServiceProvider",
-				"type": "address"
-			}
-		],
-		"name": "ServiceConfirmed",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
 				"name": "serviceProvider",
 				"type": "address"
 			},
@@ -181,9 +58,21 @@
 			},
 			{
 				"indexed": false,
+				"internalType": "bytes32",
+				"name": "requestId",
+				"type": "bytes32"
+			},
+			{
+				"indexed": false,
 				"internalType": "string",
 				"name": "serviceDescription",
 				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "enum NDISSmartContract.RequestStatus",
+				"name": "status",
+				"type": "uint8"
 			}
 		],
 		"name": "ServiceOffered",
@@ -200,6 +89,12 @@
 			},
 			{
 				"indexed": false,
+				"internalType": "bytes32",
+				"name": "requestId",
+				"type": "bytes32"
+			},
+			{
+				"indexed": false,
 				"internalType": "uint256",
 				"name": "amount",
 				"type": "uint256"
@@ -213,8 +108,14 @@
 			{
 				"indexed": false,
 				"internalType": "string",
-				"name": "description",
+				"name": "serviceDescription",
 				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "enum NDISSmartContract.RequestStatus",
+				"name": "status",
+				"type": "uint8"
 			}
 		],
 		"name": "Withdrawal",
@@ -231,6 +132,12 @@
 			},
 			{
 				"indexed": false,
+				"internalType": "bytes32",
+				"name": "requestId",
+				"type": "bytes32"
+			},
+			{
+				"indexed": false,
 				"internalType": "uint256",
 				"name": "amount",
 				"type": "uint256"
@@ -244,8 +151,14 @@
 			{
 				"indexed": false,
 				"internalType": "string",
-				"name": "description",
+				"name": "serviceDescription",
 				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "enum NDISSmartContract.RequestStatus",
+				"name": "status",
+				"type": "uint8"
 			}
 		],
 		"name": "WithdrawalRequestInitiated",
@@ -256,42 +169,51 @@
 		"type": "fallback"
 	},
 	{
-		"stateMutability": "payable",
-		"type": "receive"
-	},
-	{
-		"inputs": [],
-		"name": "getBookingRequests",
-		"outputs": [
+		"inputs": [
 			{
-				"components": [
-					{
-						"internalType": "address payable",
-						"name": "requester",
-						"type": "address"
-					},
-					{
-						"internalType": "string",
-						"name": "serviceDescription",
-						"type": "string"
-					},
-					{
-						"internalType": "bool",
-						"name": "offeredService",
-						"type": "bool"
-					}
-				],
-				"internalType": "struct NDISSmartContract.ServiceRequest[]",
-				"name": "",
-				"type": "tuple[]"
+				"internalType": "bytes32",
+				"name": "requestId",
+				"type": "bytes32"
 			}
 		],
-		"stateMutability": "view",
+		"name": "approveWithdrawal",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "serviceDescription",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "participantUnidNumber",
+				"type": "string"
+			}
+		],
+		"name": "bookService",
+		"outputs": [],
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
 		"inputs": [],
-		"name": "getWithdrawalRequests",
+		"name": "deposit",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getBookingRequests",
 		"outputs": [
 			{
 				"components": [
@@ -312,21 +234,49 @@
 					},
 					{
 						"internalType": "string",
-						"name": "description",
+						"name": "serviceDescription",
 						"type": "string"
 					},
 					{
-						"internalType": "bool",
-						"name": "approved",
-						"type": "bool"
+						"internalType": "enum NDISSmartContract.RequestStatus",
+						"name": "status",
+						"type": "uint8"
 					}
 				],
-				"internalType": "struct NDISSmartContract.WithdrawalRequest[]",
+				"internalType": "struct NDISSmartContract.Request[]",
 				"name": "",
 				"type": "tuple[]"
 			}
 		],
 		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bytes32",
+				"name": "requestId",
+				"type": "bytes32"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "participantUnidNumber",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "serviceDescription",
+				"type": "string"
+			}
+		],
+		"name": "initiateWithdrawalRequest",
+		"outputs": [],
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -381,6 +331,29 @@
 		"type": "function"
 	},
 	{
+		"inputs": [
+			{
+				"internalType": "address payable",
+				"name": "participant",
+				"type": "address"
+			},
+			{
+				"internalType": "bytes32",
+				"name": "requestId",
+				"type": "bytes32"
+			},
+			{
+				"internalType": "string",
+				"name": "serviceDescription",
+				"type": "string"
+			}
+		],
+		"name": "offerService",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
 		"inputs": [],
 		"name": "participantFunds",
 		"outputs": [
@@ -396,30 +369,19 @@
 	{
 		"inputs": [
 			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"name": "ServiceRequests",
-		"outputs": [
-			{
 				"internalType": "address payable",
-				"name": "requester",
+				"name": "account",
 				"type": "address"
 			},
 			{
-				"internalType": "string",
-				"name": "serviceDescription",
-				"type": "string"
-			},
-			{
 				"internalType": "bool",
-				"name": "offeredService",
+				"name": "isParticipantAccount",
 				"type": "bool"
 			}
 		],
-		"stateMutability": "view",
+		"name": "registerAccount",
+		"outputs": [],
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
@@ -430,7 +392,26 @@
 				"type": "uint256"
 			}
 		],
-		"name": "withdrawalRequests",
+		"name": "requestIds",
+		"outputs": [
+			{
+				"internalType": "bytes32",
+				"name": "",
+				"type": "bytes32"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bytes32",
+				"name": "",
+				"type": "bytes32"
+			}
+		],
+		"name": "requests",
 		"outputs": [
 			{
 				"internalType": "address payable",
@@ -449,16 +430,20 @@
 			},
 			{
 				"internalType": "string",
-				"name": "description",
+				"name": "serviceDescription",
 				"type": "string"
 			},
 			{
-				"internalType": "bool",
-				"name": "approved",
-				"type": "bool"
+				"internalType": "enum NDISSmartContract.RequestStatus",
+				"name": "status",
+				"type": "uint8"
 			}
 		],
 		"stateMutability": "view",
 		"type": "function"
+	},
+	{
+		"stateMutability": "payable",
+		"type": "receive"
 	}
 ]
