@@ -8,7 +8,7 @@ pragma solidity ^0.8.0;
 
 contract NDISSmartContract {
 
-    enum RequestStatus { Pending, ServiceOffered, Approved }
+    enum RequestStatus { Pending, ServiceOffered, WaitingForAppraval, Approved }
 
     // Struct to represent a request
     struct Request {
@@ -90,7 +90,7 @@ contract NDISSmartContract {
     function approveWithdrawal(bytes32 requestId) external onlyNDIA {
         // Check if the request exists
         require(requests[requestId].status != RequestStatus.Approved, "Request already approved");
-        require(requests[requestId].status == RequestStatus.Pending, "Request pending");
+        require(requests[requestId].status == RequestStatus.WaitingForAppraval, "Request is waiting for approval");
 
         // Mark the service as approved
         requests[requestId].status = RequestStatus.Approved;
@@ -152,10 +152,10 @@ contract NDISSmartContract {
             amount: amount,
             participantUnidNumber: participantUnidNumber,
             serviceDescription: serviceDescription,
-            status: RequestStatus.Pending
+            status: RequestStatus.WaitingForAppraval
         });
 
-        emit WithdrawalRequestInitiated(recipient, requestId, amount, participantUnidNumber, serviceDescription, RequestStatus.Pending);
+        emit WithdrawalRequestInitiated(recipient, requestId, amount, participantUnidNumber, serviceDescription, RequestStatus.WaitingForAppraval);
     }
 
     /**
@@ -169,6 +169,14 @@ contract NDISSmartContract {
             result[i] = requests[requestIds[i]];
         }
         return result;
+    }
+
+     /**
+     * @dev Retrieve all requestIds
+     * @return bytes32[] Array of requestIds
+     */
+    function getAllRequestIds() external view returns (bytes32[] memory) {
+        return requestIds;
     }
 
     // Receive function to handle incoming Ether
