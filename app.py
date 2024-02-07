@@ -55,14 +55,17 @@ contract = connect_to_contract()
 
 # Streamlit app
 def main():
-    page = st.sidebar.selectbox("Select Page", ["NDIA", "Participant/ServiceProvider"])
+    page = st.sidebar.selectbox("Select Page", ["NDIA", "Participants", "ServiceProviders"])
     
     if page == "NDIA":
         display_contract_details()
         deposit_funds()
         register_account()
         display_withdrawal_requests()
-    elif page == "Participant/ServiceProvider":
+    elif page == "Participants":
+        booking_requests() 
+    elif page == "ServiceProviders":
+        display_booking_requests()
         initiate_withdrawal_request()
 
 
@@ -74,6 +77,7 @@ def display_contract_details():
 
 # Function to display withdrawal requests
 def display_withdrawal_requests():
+    st.subheader("Withdrawal Requests Viewer")
     
     # Retrieve all withdrawal requests from blockchain
     withdrawal_requests = contract.functions.getWithdrawalRequests().call()
@@ -188,6 +192,152 @@ def initiate_withdrawal_request():
     else:
         st.warning("Please enter a valid value for Account Address.")
 
+def booking_requests():
+    st.subheader("Book A Service")
+
+    # Input form
+    account_address = st.text_input("Enter Account Address:")
+     # Define the list of service options
+    service_options = [
+        "Support Coordination",
+        "Core Supports",
+        "Capacity Building Supports",
+        "Assistive Technology",
+        "Home Modifications",
+        "Therapeutic Supports",
+        "Transport Supports",
+        "Specialist Disability Accommodation (SDA)",
+        "Early Childhood Early Intervention (ECEI)",
+        "Reasonable and Necessary Supports"
+    ]
+
+    # Dropdown to select a service option
+    selected_option = st.selectbox("Select a Service Option", service_options)
+
+    if account_address: 
+        try:
+            
+            requester_address = account_address
+
+            if st.button("Book"):
+                try:
+                    tx_hash = contract.functions.bookService(selected_option).transact({'from': requester_address})
+                    st.success(f"Withdrawal request initiated successfully! Transaction Hash: {tx_hash.hex()}")
+                    # Refresh withdrawal requests after initiation
+                    display_booking_requests()
+                except Exception as e:
+                    st.error(f"Failed to initiate withdrawal request. Error: {e}")
+
+        except ValueError:
+            st.error("Invalid input. Please enter a valid integer for the Ethereum account index.")
+
+def display_booking_requests():
+    st.subheader("Booking Requests Viewer")
+
+    # Retrieve all service requests 
+    service_requests = contract.functions.getBookingRequests().call()
+
+    # Check if there are no service requests
+    if not service_requests:
+        st.write("No service requests at the moment...")
+        return
+
+    pending_requests_exist = False
+
+    for request in service_requests:
+        address, service, is_offered = request
+
+        # Skip displaying if service is already offered
+        if is_offered:
+            continue
+
+        pending_requests_exist = True
+
+        st.write(f"Participant Address: {address}")
+        st.write(f"Service Required: {service}")
+        st.write(f"Offered: {is_offered}")
+
+        provider_address = st.text_input("Service Provider Address*:")
+
+        unique_counter = next(counter_generator)
+        approval_button_key = f"offer_button_{address}_{unique_counter}"
+
+        offer_service_button = st.button("Offer Service", key=approval_button_key)
+            
+        if offer_service_button:
+            
+            try:
+                # Disable the button after click
+                with st.spinner("Offering service..."):
+                    tx_hash = contract.functions.offerService(address).transact({'from': provider_address})
+                st.success(f"Service offered! Transaction Hash: {tx_hash.hex()}")
+                
+                # Trigger a rerun to update the UI
+                st.experimental_rerun()
+
+            except Exception as e:
+                st.error(f"Failed to offer service. Error: {e}")
+
+        st.write("----")
+
+    if not pending_requests_exist:
+        st.write("No pending service requests at the moment...")   
+
+#Helper function to  iterates through service rendered
+def iterate_and_display(service_rendered):
+    for index, attr_dict_str in enumerate(service_rendered):
+        try:
+            participant_address = attr_dict_str.args.participant
+            service_provider_address = attr_dict_str.args.serviceProvider
+            service_description = attr_dict_str.args.serviceDescription
+
+            st.write(f"Participant Address: {participant_address}")
+            st.write(f"Service Provider Address: {service_provider_address}")
+            st.write(f"Service Description: {service_description}")
+
+            # Button to confirm service rendered
+            unique_counter = next(counter_generator)
+            button_key = f"action_button_{index}_{unique_counter}"
+            action_button = st.button("Confirm", key=button_key)
+
+            st.write("----")
+
+            if action_button:
+                with st.spinner("Confirming service rendered....."):
+                    tx_hash = contract.functions.confirmServiceRendered(service_description, service_provider_address).transact({'from':participant_address})
+                st.success(f"Service offered! Transaction Hash: {tx_hash.hex()}")
+
+                # Trigger a rerun to update the UI
+                st.experimental_rerun()
+
+        except Exception as e:
+            st.warning(f"Error processing AttributeDict at index {index}: {e}")
+            st.write("----")   
+                             
+
+def confirm_service_rendered():
+    st.subheader("Confirm Service Rendered")
+    # Input field for participant address filter
+    participant_address_filter = st.text_input("Enter Participant Address to Filter")
+
+    # Retrieve all service requests from logs
+    service_request_filter = contract.events.ServiceConfirmed.createFilter(
+        fromBlock=0
+    )
+    all_service_request_filter = service_request_filter.get_all_entries()
+
+    # Filter service requests based on participant address
+    filtered_service_requests = [request for request in all_service_request_filter
+                                 if request.args.participant.lower() == participant_address_filter.lower()]
+    if not filtered_service_requests:
+        st.write("No service requests match the given participant address.")
+    else:
+        st.write("Filtered Service Requests:")
+        # iterate_and_display(filtered_service_requests)
+        st.write(all_service_request_filter)   
+
+   
+    
 
 
 # Main Streamlit app

@@ -13,6 +13,37 @@
 		"type": "function"
 	},
 	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "serviceDescription",
+				"type": "string"
+			}
+		],
+		"name": "bookService",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "serviceDescription",
+				"type": "string"
+			},
+			{
+				"internalType": "address payable",
+				"name": "serviceProvider",
+				"type": "address"
+			}
+		],
+		"name": "confirmServiceRendered",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
 		"inputs": [],
 		"name": "deposit",
 		"outputs": [],
@@ -46,6 +77,24 @@
 		"inputs": [
 			{
 				"internalType": "address payable",
+				"name": "participant",
+				"type": "address"
+			},
+			{
+				"internalType": "string",
+				"name": "serviceDescription",
+				"type": "string"
+			}
+		],
+		"name": "offerService",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address payable",
 				"name": "account",
 				"type": "address"
 			},
@@ -64,6 +113,81 @@
 		"inputs": [],
 		"stateMutability": "nonpayable",
 		"type": "constructor"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "participant",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "serviceDescription",
+				"type": "string"
+			}
+		],
+		"name": "ServiceBooked",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "participant",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "serviceProvider",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "serviceDescription",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "ndisServiceProvider",
+				"type": "address"
+			}
+		],
+		"name": "ServiceConfirmed",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "serviceProvider",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "participant",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "serviceDescription",
+				"type": "string"
+			}
+		],
+		"name": "ServiceOffered",
+		"type": "event"
 	},
 	{
 		"anonymous": false,
@@ -134,6 +258,36 @@
 	{
 		"stateMutability": "payable",
 		"type": "receive"
+	},
+	{
+		"inputs": [],
+		"name": "getBookingRequests",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "address payable",
+						"name": "requester",
+						"type": "address"
+					},
+					{
+						"internalType": "string",
+						"name": "serviceDescription",
+						"type": "string"
+					},
+					{
+						"internalType": "bool",
+						"name": "offeredService",
+						"type": "bool"
+					}
+				],
+				"internalType": "struct NDISSmartContract.ServiceRequest[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
 	},
 	{
 		"inputs": [],
@@ -234,6 +388,35 @@
 				"internalType": "uint256",
 				"name": "",
 				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "ServiceRequests",
+		"outputs": [
+			{
+				"internalType": "address payable",
+				"name": "requester",
+				"type": "address"
+			},
+			{
+				"internalType": "string",
+				"name": "serviceDescription",
+				"type": "string"
+			},
+			{
+				"internalType": "bool",
+				"name": "offeredService",
+				"type": "bool"
 			}
 		],
 		"stateMutability": "view",
