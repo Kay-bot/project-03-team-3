@@ -4,14 +4,12 @@ from web3 import Web3
 from pathlib import Path
 import streamlit as st
 
-from functions.config import WEB3_PROVIDER_URI, SMART_CONTRACT_ADDRESS
+from dotenv import load_dotenv
 
-if not WEB3_PROVIDER_URI or not SMART_CONTRACT_ADDRESS:
-    st.error("Please set the environment variables WEB3_PROVIDER_URI and SMART_CONTRACT_ADDRESS.")
-    st.stop()
+load_dotenv()
 
 # Define and connect a new Web3 provider
-w3 = Web3(Web3.HTTPProvider(WEB3_PROVIDER_URI))
+w3 = Web3(Web3.HTTPProvider(os.getenv("WEB3_PROVIDER_URI")))
 
 # Define the load_contract function
 def connect_to_contract():

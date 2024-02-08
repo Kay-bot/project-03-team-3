@@ -1,26 +1,34 @@
 # Import libraries
+import os
 from web3 import Web3
 import streamlit as st
 
-# import config
-from functions.config import WEB3_PROVIDER_URI
-
-# Import function from contract module
+# Import functions
 from functions.contract import connect_to_contract
-# Import functions from ndia module
 from functions.ndia import (
-    display_contract_details,
-    deposit_funds,
-    register_account
+    display_contract_details, 
+    deposit_funds, 
+    register_account,
+    display_withdrawal_requests, 
+    approve_withdrawal
+)
+from functions.utils import (
+    display_booking_requests, 
+    booking_requests, 
+    service_request_lookup
 )
 
-# Import functions from utils module
-from functions.utils import (
-    display_withdrawal_requests,
-    display_booking_requests,
+from functions.provider import (
+    offer_service,
     initiate_withdrawal_request,
-    booking_requests
+    display_service_offered
 )
+
+from dotenv import load_dotenv
+
+load_dotenv()
+
+contract = connect_to_contract()
 
 # Set page configuration
 st.set_page_config(page_title="NDIS Smart Contract Interaction App", page_icon=":rocket:")
@@ -37,11 +45,16 @@ def main():
         deposit_funds()
         register_account()
         display_withdrawal_requests()
+        approve_withdrawal()
     elif page == "Participants":
         booking_requests() 
     elif page == "ServiceProviders":
         display_booking_requests()
+        offer_service()
+        display_service_offered()
+        service_request_lookup()
         initiate_withdrawal_request()
+        
 
 # Main Streamlit app
 if __name__ == "__main__":
@@ -49,7 +62,7 @@ if __name__ == "__main__":
         st.markdown("## Ethereum Node Configuration")
 
     with st.spinner("Connecting to Ethereum node..."):
-        web3 = Web3(Web3.HTTPProvider(WEB3_PROVIDER_URI))
+        web3 = Web3(Web3.HTTPProvider(os.getenv("WEB3_PROVIDER_URI")))
         if web3.isConnected():
             st.success("Connected to Ethereum node")
             main()
