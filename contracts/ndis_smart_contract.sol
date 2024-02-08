@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.7;
+
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 /**
  * @title NDISSmartContract
@@ -56,6 +58,9 @@ contract NDISSmartContract {
         _;
     }
 
+    // Event to log account registration details
+    event AccountRegistered(address indexed account, bool isParticipantAccount);
+
     // Event to log service booking details
     event ServiceBooked(address indexed participant, bytes32 requestId, string serviceDescription, uint amount, RequestStatus status);
 
@@ -84,6 +89,9 @@ contract NDISSmartContract {
         } else {
             ndisServiceProvider[account] = true;
         }
+
+        // Emit event to log account registration details
+        emit AccountRegistered(account, isParticipantAccount);
     }
 
     // Function to approve a withdrawal request
@@ -191,6 +199,6 @@ contract NDISSmartContract {
 
     // Internal function to update participantFunds
     function updateParticipantFunds() internal {
-        participantFunds = address(this).balance;
+        participantFunds = SafeMath.add(address(this).balance, participantFunds);
     }
 }
