@@ -14,7 +14,8 @@ from functions.ndia import (
 from functions.utils import (
     display_booking_requests, 
     booking_requests, 
-    service_request_lookup
+    service_request_lookup,
+    my_booking_requests_lookup
 )
 
 from functions.provider import (
@@ -44,6 +45,7 @@ def main():
         approve_withdrawal()
     elif page == "Participants":
         booking_requests() 
+        my_booking_requests_lookup()
     elif page == "ServiceProviders":
         display_booking_requests()
         service_request_lookup()

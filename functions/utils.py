@@ -63,6 +63,31 @@ def service_request_lookup():
             st.write("------------")   
     st.write("----")
 
+def my_booking_requests_lookup():
+    st.subheader("My booking requests look up")
+    # Retrieve all service requests 
+    service_request_filter = contract.events.ServiceBooked.createFilter(
+        fromBlock=0
+    )
+   
+    all_booking_requests = service_request_filter.get_all_entries()
+   
+    participant_address = st.text_input("Account Address*:")
+   
+    for request_entry in all_booking_requests:
+        if  participant_address == request_entry['args']['participant']:
+            job = request_entry['args']['jobNumber']
+            request_id = "0x" + request_entry['args']['requestId'].hex()
+            service_description = request_entry['args']['serviceDescription']
+            amount = request_entry['args']['amount']
+            st.write(f"Job Number: {job}")
+            st.write(f"Request ID: {request_id}")
+            st.write(f"Participant Address: {participant_address}")
+            st.write(f"Service Description: {service_description}")
+            st.write(f"Amount: {amount}")
+            st.write("------------")   
+    st.write("----")    
+
 def booking_requests():
     st.subheader("Book A Service")
 
@@ -102,7 +127,7 @@ def booking_requests():
 
         except ValueError:
             st.error("Invalid input. Please enter a valid integer for the Ethereum account index.") 
-
+    st.write("----")
 
 def generate_job_number():
     global last_job_number
