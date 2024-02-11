@@ -24,31 +24,35 @@ from functions.provider import (
     display_service_offered
 )
 
+from functions.auth import authenticate
+
 from dotenv import load_dotenv
 
 load_dotenv()
 
-contract = connect_to_contract()
-
 # Set page configuration
 st.set_page_config(page_title="NDIS Smart Contract Interaction App", page_icon=":rocket:")
 
-# Load the contract
-contract = connect_to_contract()
+if st.sidebar.button("Logout"):
+    st.session_state.authenticated = False
+    st.experimental_rerun()
 
 # Streamlit app
 def main():
-    page = st.sidebar.selectbox("Select Page", ["NDIA", "Participants", "ServiceProviders"])
-    
-    if page == "NDIA":
+    role = authenticate()
+
+    if role == "NDIA":
+        st.sidebar.selectbox("Select Page", ["NDIA"])
         display_contract_details()
         deposit_funds()
         register_account()
         display_withdrawal_requests()
         approve_withdrawal()
-    elif page == "Participants":
-        booking_requests() 
-    elif page == "ServiceProviders":
+    elif role == "Participant":
+        st.sidebar.selectbox("Select Page", ["Participants"])
+        booking_requests()
+    elif role == "ServiceProvider":
+        st.sidebar.selectbox("Select Page", ["ServiceProviders"])
         display_booking_requests()
         offer_service()
         display_service_offered()
