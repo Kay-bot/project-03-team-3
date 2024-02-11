@@ -4,7 +4,6 @@ from web3 import Web3
 import streamlit as st
 
 # Import functions
-from functions.contract import connect_to_contract
 from functions.ndia import (
     display_contract_details, 
     deposit_funds, 
@@ -24,8 +23,6 @@ from functions.provider import (
     display_service_offered
 )
 
-from functions.auth import authenticate
-
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -33,33 +30,30 @@ load_dotenv()
 # Set page configuration
 st.set_page_config(page_title="NDIS Smart Contract Interaction App", page_icon=":rocket:")
 
-if st.sidebar.button("Logout"):
-    st.session_state.authenticated = False
-    st.experimental_rerun()
-
 # Streamlit app
 def main():
-    role = authenticate()
-
-    if role == "NDIA":
-        st.sidebar.selectbox("Select Page", ["NDIA"])
+    
+    page = st.sidebar.selectbox("Select Page", ["NDIA", "Participants", "ServiceProviders"])
+    
+    if page == "NDIA":
         display_contract_details()
         deposit_funds()
         register_account()
         display_withdrawal_requests()
         approve_withdrawal()
-    elif role == "Participant":
-        st.sidebar.selectbox("Select Page", ["Participants"])
-        booking_requests()
-    elif role == "ServiceProvider":
-        st.sidebar.selectbox("Select Page", ["ServiceProviders"])
+    elif page == "Participants":
+        booking_requests() 
+    elif page == "ServiceProviders":
         display_booking_requests()
         offer_service()
         display_service_offered()
         service_request_lookup()
         initiate_withdrawal_request()
-        
 
+if st.sidebar.button("Logout"):
+    st.session_state.authenticated = False
+    st.experimental_rerun()
+        
 # Main Streamlit app
 if __name__ == "__main__":
     with st.sidebar:
