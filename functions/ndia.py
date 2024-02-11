@@ -12,7 +12,7 @@ from functions.contract import connect_to_contract
 
 contract = connect_to_contract()
 
-account_address = os.getenv("NDIA")
+ndia_account_address = os.getenv("NDIA")
 
 # Function to display contract details
 def display_contract_details():
@@ -29,18 +29,17 @@ def deposit_funds():
     deposit_amount = st.number_input("Enter deposit amount in wei:", min_value=0, step=1)
     
 
-    if account_address:
+    if ndia_account_address:
         try:
-            ndia_address = account_address
-
+    
             if st.button("Deposit Funds"):
                 # Check if the entered address is the NDIA address
-                is_ndia = contract.functions.ndia().call() == ndia_address
+                is_ndia = contract.functions.ndia().call() == ndia_account_address
                 if not is_ndia:
                     st.error("Invalid NDIA address. Please provide the correct NDIA address.")
                     return
 
-                tx_hash = contract.functions.deposit().transact({'from': ndia_address, 'value': deposit_amount})
+                tx_hash = contract.functions.deposit().transact({'from': ndia_account_address, 'value': deposit_amount})
                 st.success(f"Deposit successful! Transaction Hash: {tx_hash.hex()}")
                 # Refresh contract details after deposit
                 display_contract_details()
@@ -53,32 +52,32 @@ def deposit_funds():
 def register_account():
     st.subheader("Register Account")
 
+
     # Input form
-    account_address = st.text_input("Enter Participant/ServiceProvider Address:", key="account_address")
+    accounts_address = st.text_input("Enter Participant/ServiceProvider Address:", key="account_address")
     is_participant_account = True if st.checkbox("Register as a Participant Account") else False
 
-    if account_address:
-     
+    if accounts_address:
         try:
             # Button to execute the function
             if st.button("Register Account"):
 
                 # Check if the entered address is the NDIA address
-                is_ndia = contract.functions.ndia().call() == account_address
+                is_ndia = contract.functions.ndia().call() == ndia_account_address
                 if not is_ndia:
                     st.error("Invalid NDIA address. Please provide the correct NDIA address.")
                     return
 
                 # Convert input values
-                account_address = Web3.toChecksumAddress(account_address)
+                address = Web3.toChecksumAddress(accounts_address)
 
                 # Check if the account is already registered
-                if contract.functions.ndisParticipant(account_address).call() or \
-                        contract.functions.ndisServiceProvider(account_address).call():
+                if contract.functions.ndisParticipant(address).call() or \
+                        contract.functions.ndisServiceProvider(address).call():
                     st.error("Account already registered.")
                 else:
                     # Execute the Solidity function with onlyNDIA modifier
-                    contract.functions.registerAccount(account_address, is_participant_account).transact({'from': account_address})
+                    contract.functions.registerAccount(address, is_participant_account).transact({'from': ndia_account_address})
 
                     st.success("Account registered successfully.")
         except Exception as e:
