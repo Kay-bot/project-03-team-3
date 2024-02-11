@@ -1,11 +1,18 @@
 # Import libraries
+import os
 import streamlit as st
 from web3 import Web3
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Import function from contract
 from functions.contract import connect_to_contract
 
 contract = connect_to_contract()
+
+account_address = os.getenv("NDIA")
 
 # Function to display contract details
 def display_contract_details():
@@ -20,7 +27,7 @@ def deposit_funds():
 
     # Input form
     deposit_amount = st.number_input("Enter deposit amount in wei:", min_value=0, step=1)
-    account_address = st.text_input("Enter NDIA Address:")
+    
 
     if account_address:
         try:
@@ -50,17 +57,14 @@ def register_account():
     account_address = st.text_input("Enter Participant/ServiceProvider Address:", key="account_address")
     is_participant_account = True if st.checkbox("Register as a Participant Account") else False
 
-    ndia_account_address = st.text_input("Enter NDIA Address:", key="ndia_address")
-
-    if ndia_account_address:
-        ndia_address = ndia_account_address
-
+    if account_address:
+     
         try:
             # Button to execute the function
             if st.button("Register Account"):
 
                 # Check if the entered address is the NDIA address
-                is_ndia = contract.functions.ndia().call() == ndia_address
+                is_ndia = contract.functions.ndia().call() == account_address
                 if not is_ndia:
                     st.error("Invalid NDIA address. Please provide the correct NDIA address.")
                     return
@@ -74,7 +78,7 @@ def register_account():
                     st.error("Account already registered.")
                 else:
                     # Execute the Solidity function with onlyNDIA modifier
-                    contract.functions.registerAccount(account_address, is_participant_account).transact({'from': ndia_address})
+                    contract.functions.registerAccount(account_address, is_participant_account).transact({'from': account_address})
 
                     st.success("Account registered successfully.")
         except Exception as e:
@@ -83,8 +87,6 @@ def register_account():
 
 def approve_withdrawal():
         st.subheader("Approve Withdrawal Request")
-    
-        account_address = st.text_input("Enter NDIA Address:", key="approve withdrawal")
         
         # Retrieve all withdrawal requests
         withdrawal_request_filter = contract.events.WithdrawalRequestInitiated.createFilter(fromBlock="latest")
