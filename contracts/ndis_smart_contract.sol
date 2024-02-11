@@ -8,12 +8,14 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
  * @dev A smart contract to manage funds and withdrawals for NDIS (National Disability Insurance Scheme).
  */
 
+
 contract NDISSmartContract {
 
     enum RequestStatus { Pending, ServiceOffered, WaitingForAppraval, Approved }
 
     // Struct to represent a request
     struct Request {
+        string jobNumber;
         address payable requester;
         uint amount; 
         string participantUnidNumber; 
@@ -62,14 +64,14 @@ contract NDISSmartContract {
     event AccountRegistered(address indexed account, bool isParticipantAccount);
 
     // Event to log service booking details
-    event ServiceBooked(address indexed participant, bytes32 requestId, string serviceDescription, uint amount, RequestStatus status);
+    event ServiceBooked(string jobNumber, address indexed participant, bytes32 requestId, string serviceDescription, uint amount, RequestStatus status);
 
     // Event to log service approval details
     event ServiceOffered(address indexed serviceProvider, address indexed participant, bytes32 requestId, string serviceDescription, RequestStatus status);
 
     // Event to log withdrawal details
     event Withdrawal(address indexed recipient, bytes32 requestId, uint amount, string participantUnidNumber, string serviceDescription, RequestStatus status);
-    event WithdrawalRequestInitiated(address indexed recipient, bytes32 requestId, uint amount, string participantUnidNumber, string serviceDescription, RequestStatus status);
+    event WithdrawalRequestInitiated(address indexed recipient, bytes32 requestId, uint amount, RequestStatus status);
 
     /**
     * NDIS Functions 
@@ -107,6 +109,8 @@ contract NDISSmartContract {
         requests[requestId].requester.transfer(requests[requestId].amount);
 
         emit Withdrawal(requests[requestId].requester, requestId, requests[requestId].amount, requests[requestId].participantUnidNumber, requests[requestId].serviceDescription, requests[requestId].status);
+
+        updateParticipantFunds();
     }
 
     /**
@@ -114,12 +118,13 @@ contract NDISSmartContract {
     */
 
     // Function for participants to book services
-    function bookService(string memory serviceDescription, uint amount, string memory participantUnidNumber) external onlyNdisParticipant {
+    function bookService(string memory jobNumber, string memory serviceDescription, uint amount, string memory participantUnidNumber) external onlyNdisParticipant {
         address payable requester = payable(msg.sender);
         bytes32 requestId = keccak256(abi.encodePacked(requester, serviceDescription, amount, participantUnidNumber, block.timestamp));
 
         // Create a service request and add it to the mapping
         requests[requestId] = Request({
+            jobNumber: jobNumber,
             requester: requester,
             amount: amount,
             participantUnidNumber: participantUnidNumber,
@@ -130,7 +135,7 @@ contract NDISSmartContract {
         requestIds.push(requestId);
 
         // Emit event to log service booking details
-        emit ServiceBooked(msg.sender, requestId, serviceDescription, amount, RequestStatus.Pending);
+        emit ServiceBooked(jobNumber, msg.sender, requestId, serviceDescription, amount, RequestStatus.Pending);
     }
 
     /**
@@ -149,21 +154,16 @@ contract NDISSmartContract {
     }
 
     // Function to initiate a withdrawal request
-    function initiateWithdrawalRequest(bytes32 requestId, uint amount, string memory participantUnidNumber, string memory serviceDescription) external onlyNdisParticipantAndNdisServiceProvider {
+    function initiateWithdrawalRequest(bytes32 requestId, uint amount) external onlyNdisParticipantAndNdisServiceProvider {
         address payable recipient = payable(msg.sender);
         require(requests[requestId].status == RequestStatus.ServiceOffered, "Service Rendered");
         require(participantFunds >= amount, "Insufficient funds!");
 
-        // Create a withdrawal request and add it to the mapping
-        requests[requestId] = Request({
-            requester: recipient,
-            amount: amount,
-            participantUnidNumber: participantUnidNumber,
-            serviceDescription: serviceDescription,
-            status: RequestStatus.WaitingForAppraval
-        });
+        // Mark the service as waiting for approval
+        requests[requestId].status = RequestStatus.WaitingForAppraval;
 
-        emit WithdrawalRequestInitiated(recipient, requestId, amount, participantUnidNumber, serviceDescription, RequestStatus.WaitingForAppraval);
+        // Emit event to log service approval details
+        emit WithdrawalRequestInitiated(recipient, requestId, amount, RequestStatus.WaitingForAppraval);
     }
 
     /**
@@ -177,14 +177,6 @@ contract NDISSmartContract {
             result[i] = requests[requestIds[i]];
         }
         return result;
-    }
-
-     /**
-     * @dev Retrieve all requestIds
-     * @return bytes32[] Array of requestIds
-     */
-    function getAllRequestIds() external view returns (bytes32[] memory) {
-        return requestIds;
     }
 
     // Receive function to handle incoming Ether

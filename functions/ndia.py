@@ -88,10 +88,10 @@ def approve_withdrawal():
         st.subheader("Approve Withdrawal Request")
         
         # Retrieve all withdrawal requests
-        withdrawal_request_filter = contract.events.WithdrawalRequestInitiated.createFilter(fromBlock="latest")
+        withdrawal_request_filter = contract.events.WithdrawalRequestInitiated.createFilter(fromBlock=0)
         all_withdrawal_requests = withdrawal_request_filter.get_all_entries()
         
-        request_id = st.selectbox("Select Request ID:", [entry['args']['requestId'].hex() for entry in all_withdrawal_requests])
+        request_id = st.text_input("Select Request ID:")
         
         approve_button = st.button("Approve Withdrawal")
 
@@ -99,7 +99,7 @@ def approve_withdrawal():
             try:
                 with st.spinner("Approving withdrawal..."):
                     # Call the contract function to approve the withdrawal
-                    tx_hash = contract.functions.approveWithdrawal(bytes.fromhex(request_id)).transact({'from': account_address})
+                    tx_hash = contract.functions.approveWithdrawal(bytes.fromhex(request_id)).transact({'from': ndia_account_address})
                 
                 st.success(f"Withdrawal request approved! Transaction Hash: {tx_hash.hex()}")
                 
@@ -118,22 +118,17 @@ def approve_withdrawal():
 def display_withdrawal_requests():
     st.subheader("Withdrawal Requests Viewer")
     
-    # Retrieve all withdrawal requests from events
-    withdrawal_request_filter = contract.events.WithdrawalRequestInitiated.createFilter(
-        fromBlock=0
-    )
-    all_withdrawal_requests = withdrawal_request_filter.get_all_entries()
-
     requests = contract.functions.getBookingRequests().call()
 
     pending_requests = []
 
     for request in requests:
-        address, amount, participant_unique_id, service_description, status = request
+        job, address, amount, participant_unique_id, service_description, status = request
 
         # Only display requests with status 0
         if status == 2:
             pending_requests.append({
+                "Job Number": job,
                 "Recipient": address,
                 "Service Description": service_description,
                 "Amount": amount,

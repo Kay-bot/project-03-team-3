@@ -13,13 +13,8 @@ def offer_service():
     st.subheader("Offer Service Booking")
 
     service_provider_address = st.text_input("Service Provider Address*:")
-    
-    # Retrieve all pending service requests
-    pending_service_filter = contract.events.ServiceBooked.createFilter(fromBlock="latest")
-    pending_service_requests = [entry['args'] for entry in pending_service_filter.get_all_entries() if entry['args']['status'] == 0]  # 0 corresponds to RequestStatus.Pending
-    
-    request_id = st.selectbox("Select Request ID:", [entry['requestId'].hex() for entry in pending_service_requests])
-    service_description = st.text_input("Service Description:")
+    request_id = st.text_input("Select Request ID:" )
+    service_description = st.text_input("Service Description")
     
     offer_button = st.button("Offer Service")
 
@@ -27,7 +22,7 @@ def offer_service():
         try:
             with st.spinner("Offering service..."):
                 # Call the contract function to offer the service
-                tx_hash = contract.functions.offerService(service_provider_address, bytes.fromhex(request_id), service_description).transact({'from': service_provider_address})
+                tx_hash = contract.functions.offerService(service_provider_address, request_id, service_description).transact({'from': service_provider_address})
             
             st.success(f"Service offered! Transaction Hash: {tx_hash.hex()}")
             
@@ -49,11 +44,8 @@ def initiate_withdrawal_request():
     # Retrieve all service requests
     service_request_filter = contract.events.ServiceOffered.createFilter(fromBlock="latest")
     service_requests = [entry['args'] for entry in service_request_filter.get_all_entries() if entry['args']['status'] == 1]  # 1 corresponds to RequestStatus.ServiceOffered
-    
-    request_id = st.selectbox("Select Request ID:", [entry['requestId'].hex() for entry in service_requests], key=f"select_request_{address}")
-    amount = st.number_input("Enter Withdrawal Amount:", min_value=0, step=1)
-    participant_unid_number = st.text_input("Participant Unique ID:")
-    service_description = st.text_input("Service Description:", key="Service Description")
+    amount = st.number_input("Enter amount in wei:", min_value=0, step=1)
+    request_id = st.selectbox("Select Request ID:", ["0x" + entry['requestId'].hex() for entry in service_requests], key=f"select_request_{address}")
     
     initiate_button = st.button("Initiate Withdrawal Request")
 
@@ -61,7 +53,7 @@ def initiate_withdrawal_request():
         try:
             with st.spinner("Initiating withdrawal request..."):
                 # Call the contract function to initiate the withdrawal request
-                tx_hash = contract.functions.initiateWithdrawalRequest(bytes.fromhex(request_id), amount, participant_unid_number, service_description).transact({'from': address})
+                tx_hash = contract.functions.initiateWithdrawalRequest(request_id, amount).transact({'from': address})
             
             st.success(f"Withdrawal request initiated! Transaction Hash: {tx_hash.hex()}")
             
@@ -84,11 +76,12 @@ def display_service_offered():
     pending_requests = []
 
     for request in requests:
-        participant_address, amount, participant_unique_id, service_description, status = request
+        job_number, participant_address, amount, participant_unique_id, service_description, status = request
 
         # Only display requests with status 0
         if status == 1:
             pending_requests.append({
+                "Job Number": job_number,
                 "Participant Address": participant_address,
                 "Service Description": service_description,
                 "Amount": amount,

@@ -40,14 +40,15 @@ def main():
         deposit_funds()
         register_account()
         display_withdrawal_requests()
+        service_request_lookup()
         approve_withdrawal()
     elif page == "Participants":
         booking_requests() 
     elif page == "ServiceProviders":
         display_booking_requests()
+        service_request_lookup()
         offer_service()
         display_service_offered()
-        service_request_lookup()
         initiate_withdrawal_request()
 
 if st.sidebar.button("Logout"):

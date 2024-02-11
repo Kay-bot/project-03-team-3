@@ -40,6 +40,11 @@
 		"inputs": [
 			{
 				"internalType": "string",
+				"name": "jobNumber",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
 				"name": "serviceDescription",
 				"type": "string"
 			},
@@ -77,16 +82,6 @@
 				"internalType": "uint256",
 				"name": "amount",
 				"type": "uint256"
-			},
-			{
-				"internalType": "string",
-				"name": "participantUnidNumber",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "serviceDescription",
-				"type": "string"
 			}
 		],
 		"name": "initiateWithdrawalRequest",
@@ -138,6 +133,12 @@
 	{
 		"anonymous": false,
 		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "jobNumber",
+				"type": "string"
+			},
 			{
 				"indexed": true,
 				"internalType": "address",
@@ -275,18 +276,6 @@
 			},
 			{
 				"indexed": false,
-				"internalType": "string",
-				"name": "participantUnidNumber",
-				"type": "string"
-			},
-			{
-				"indexed": false,
-				"internalType": "string",
-				"name": "serviceDescription",
-				"type": "string"
-			},
-			{
-				"indexed": false,
 				"internalType": "enum NDISSmartContract.RequestStatus",
 				"name": "status",
 				"type": "uint8"
@@ -305,23 +294,15 @@
 	},
 	{
 		"inputs": [],
-		"name": "getAllRequestIds",
-		"outputs": [
-			{
-				"internalType": "bytes32[]",
-				"name": "",
-				"type": "bytes32[]"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
 		"name": "getBookingRequests",
 		"outputs": [
 			{
 				"components": [
+					{
+						"internalType": "string",
+						"name": "jobNumber",
+						"type": "string"
+					},
 					{
 						"internalType": "address payable",
 						"name": "requester",
@@ -449,6 +430,11 @@
 		],
 		"name": "requests",
 		"outputs": [
+			{
+				"internalType": "string",
+				"name": "jobNumber",
+				"type": "string"
+			},
 			{
 				"internalType": "address payable",
 				"name": "requester",

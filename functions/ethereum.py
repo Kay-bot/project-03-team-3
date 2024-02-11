@@ -65,3 +65,5 @@ def send_transaction(account, receiver, ether):
     # Send the signed transactions
     return w3.eth.sendRawTransaction(signed_tx.rawTransaction)
 
+print(os.getenv("SMART_CONTRACT_ADDRESS"))
+

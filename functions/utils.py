@@ -17,11 +17,12 @@ def display_booking_requests():
     pending_requests = []
 
     for request in requests:
-        participant_address, amount, participant_unique_id, service_description, status = request
+        job_number, participant_address, amount, participant_unique_id, service_description, status = request
 
         # Only display requests with status 0
         if status == 0:
             pending_requests.append({
+                "Job Number": job_number,
                 "Participant Address": participant_address,
                 "Service Description": service_description,
                 "Amount": amount,
@@ -46,14 +47,15 @@ def service_request_lookup():
    
     all_booking_requests = service_request_filter.get_all_entries()
    
-    participant_address = st.text_input("Participant Provider Address*:")
+    job = st.text_input("Job Number*:")
    
     for request_entry in all_booking_requests:
-        if participant_address == request_entry['args']['participant']:
-            request_id = request_entry['args']['requestId'].hex()
+        if job == request_entry['args']['jobNumber']:
+            participant_address =request_entry['args']['participant']
+            request_id = "0x" + request_entry['args']['requestId'].hex()
             service_description = request_entry['args']['serviceDescription']
             amount = request_entry['args']['amount']
-
+            st.write(f"Job Number: {job}")
             st.write(f"Request ID: {request_id}")
             st.write(f"Participant Address: {participant_address}")
             st.write(f"Service Description: {service_description}")
@@ -91,8 +93,8 @@ def booking_requests():
 
             if st.button("Book"):
                 try:
-                    tx_hash = contract.functions.bookService(selected_option_name, selected_option_value, account_address).transact({'from': requester_address})
-                    st.success(f"Withdrawal request initiated successfully! Transaction Hash: {tx_hash.hex()}")
+                    tx_hash = contract.functions.bookService(generate_job_number(), selected_option_name, selected_option_value, account_address).transact({'from': requester_address})
+                    st.success(f"Sevice booked successfully! Transaction Hash: {tx_hash.hex()}")
                     # Refresh withdrawal requests after initiation
                     display_booking_requests()
                 except Exception as e:
@@ -101,3 +103,8 @@ def booking_requests():
         except ValueError:
             st.error("Invalid input. Please enter a valid integer for the Ethereum account index.") 
 
+
+def generate_job_number():
+    global last_job_number
+    last_job_number = last_job_number + 1 if 'last_job_number' in globals() else 100
+    return str(last_job_number)
