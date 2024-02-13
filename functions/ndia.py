@@ -99,7 +99,7 @@ def approve_withdrawal():
             try:
                 with st.spinner("Approving withdrawal..."):
                     # Call the contract function to approve the withdrawal
-                    tx_hash = contract.functions.approveWithdrawal(bytes.fromhex(request_id)).transact({'from': ndia_account_address})
+                    tx_hash = contract.functions.approveWithdrawal(request_id).transact({'from': ndia_account_address})
                 
                 st.success(f"Withdrawal request approved! Transaction Hash: {tx_hash.hex()}")
                 
