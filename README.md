@@ -10,11 +10,20 @@ The National Disability Insurance Scheme (NDIS) has significantly transformed di
 
 ### User Interface Screenshots
 - Provide screenshots of the user interface illustrating the integration of smart contracts.
+![NDIA Interface Screenshot](media/ndia-functions-1.png)
+![NDIA Interface Screenshot](media/ndia-functions-2.png)
+![Participant Interface Screenshot](media/participant-functions-1.png)
+![Provider Interface Screenshot](media/provider-functions-1.png)
+![Provider Interface Screenshot](media/provider-functions-2.png)
+![Provider Interface Screenshot](media/provider-functions-3.png)
 - Showcase the simplicity and user-friendliness of the system for NDIS participants, administrators, and service providers.
+- Video Demo
+[Watch the demonstration video](media/Recording 2024-02-13 202834.mp4)
 
 ### Walkthrough Details
-- Offer a step-by-step walkthrough detailing how a participant registers, funds are allocated, and services are executed using smart contracts.
-- Highlight how transparency is achieved through the blockchain's immutable ledger.
+- NDIS Smart Contract Design.
+![NDIS Smart Contract Design](media/contract-design.png)
+![NDIS Smart Contract Design](media/cost-comparison.png).
 
 ## Next Steps - Exploring Beyond Smart Contract Execution
 
