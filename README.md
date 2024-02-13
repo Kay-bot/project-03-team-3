@@ -12,21 +12,27 @@ The National Disability Insurance Scheme (NDIS) has significantly transformed di
 
 ### User Interface Screenshots
 - Provide screenshots of the user interface illustrating the integration of smart contracts.
-![NDIA Interface Screenshot](media/ndia-functions-1.png)
-![NDIA Interface Screenshot](media/ndia-functions-2.png)
-![Participant Interface Screenshot](media/participant-functions-1.png)
-![Provider Interface Screenshot](media/provider-functions-1.png)
-![Provider Interface Screenshot](media/provider-functions-2.png)
-![Provider Interface Screenshot](media/provider-functions-3.png)
+- ![NDIA Interface Screenshot](media/ndia-functions-1.png)
+- 
+- ![NDIA Interface Screenshot](media/ndia-functions-2.png)
+- 
+- ![Participant Interface Screenshot](media/participant-functions-1.png)
+- 
+- ![Provider Interface Screenshot](media/provider-functions-1.png)
+- 
+- ![Provider Interface Screenshot](media/provider-functions-2.png)
+- 
+- ![Provider Interface Screenshot](media/provider-functions-3.png)
 
 - Download video demo here: 
 [Watch the demonstration video](media/Recording 2024-02-13 202834.mp4)
 
 ### Walkthrough Details
 - NDIS Smart Contract Design.
-![NDIS Smart Contract Design](media/contract-design.png)
+- ![NDIS Smart Contract Design](media/contract-design.png)
+
 - Cost comparison 
-![NDIS Smart Contract Design](media/cost-comparison.png).
+- ![NDIS Smart Contract Design](media/cost-comparison.png).
 
 ## Next Steps - Exploring Beyond Smart Contract Execution
 
