@@ -5,8 +5,10 @@ The National Disability Insurance Scheme (NDIS) has significantly transformed di
 ## Proof of Concept - Basic Framework & Methodologies
 
 ### Smart Contract Deployment
-- Utilize a blockchain platform compatible with smart contracts, ensuring security and transparency.
-- Develop smart contracts for key NDIS processes such as participant registration, fund allocation, and service execution.
+- Remix IDE
+- Ganache
+- Python
+- Streamlit
 
 ### User Interface Screenshots
 - Provide screenshots of the user interface illustrating the integration of smart contracts.
@@ -16,13 +18,14 @@ The National Disability Insurance Scheme (NDIS) has significantly transformed di
 ![Provider Interface Screenshot](media/provider-functions-1.png)
 ![Provider Interface Screenshot](media/provider-functions-2.png)
 ![Provider Interface Screenshot](media/provider-functions-3.png)
-- Showcase the simplicity and user-friendliness of the system for NDIS participants, administrators, and service providers.
-- Video Demo
+
+- Download video demo here: 
 [Watch the demonstration video](media/Recording 2024-02-13 202834.mp4)
 
 ### Walkthrough Details
 - NDIS Smart Contract Design.
 ![NDIS Smart Contract Design](media/contract-design.png)
+- Cost comparison 
 ![NDIS Smart Contract Design](media/cost-comparison.png).
 
 ## Next Steps - Exploring Beyond Smart Contract Execution
